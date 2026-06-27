@@ -120,38 +120,104 @@
   </div>
 
 <script>
+  // ⚠️ Shu yerga o'zingizning ngrok linkingizni qo'ying (oxiridagi / siz)
+  const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
+
   const tg = window.Telegram?.WebApp;
+  let currentUser = null; // backend'dan kelgan foydalanuvchi ma'lumoti
+
   if (tg) {
     tg.expand();
     tg.ready();
-    const user = tg.initDataUnsafe?.user;
-    if (user) {
-      document.getElementById('userName').textContent = user.first_name || 'Foydalanuvchi';
-      document.getElementById('userUsername').textContent = user.username ? '@' + user.username : '';
+  }
+
+  // ngrok bepul tarifda har bir so'rovga ogohlantirish sahifasini
+  // qo'shadi, shu headerni yuborsak, to'g'ridan-to'g'ri javob qaytaradi.
+  const apiHeaders = {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  };
+
+  async function loadUser() {
+    const tgUser = tg?.initDataUnsafe?.user;
+    const telegram_id = tgUser?.id || 123456; // brauzerda sinash uchun zaxira ID
+    const first_name = tgUser?.first_name || "Mehmon";
+    const username = tgUser?.username || "";
+
+    document.getElementById('userName').textContent = first_name;
+    document.getElementById('userUsername').textContent = username ? '@' + username : '';
+
+    try {
+      const res = await fetch(`${API_BASE}/user`, {
+        method: "POST",
+        headers: apiHeaders,
+        body: JSON.stringify({ telegram_id, first_name, username }),
+      });
+      currentUser = await res.json();
+      document.getElementById('balance').textContent = currentUser.balance.toLocaleString();
+    } catch (err) {
+      console.error("Backendga ulanib bo'lmadi:", err);
+      document.getElementById('balance').textContent = "xato";
     }
   }
 
-  // Demo uchun statik mahsulotlar (keyinchalik backend API'dan keladi)
-  const products = [
-    { name: 'PUBG MOBILE', icon: '🔫' },
-    { name: 'FREE FIRE', icon: '🔥' },
-    { name: 'MOBILE LEGENDS', icon: '⚔️' },
-    { name: 'STAND OFF 2', icon: '🪖' },
-    { name: 'TG STARS', icon: '⭐' },
-    { name: 'TG PREMIUM', icon: '💎' },
-  ];
+  async function loadProducts() {
+    const grid = document.getElementById('productGrid');
+    try {
+      const res = await fetch(`${API_BASE}/products`, { headers: apiHeaders });
+      const products = await res.json();
 
-  const grid = document.getElementById('productGrid');
-  products.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'product';
-    div.innerHTML = `<div class="icon">${p.icon}</div><div class="name">${p.name}</div>`;
-    div.onclick = () => alert(p.name + ' sotib olish oqimi shu yerga ulanadi');
-    grid.appendChild(div);
-  });
+      grid.innerHTML = "";
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <div class="icon">${p.icon}</div>
+          <div class="name">${p.name}</div>
+          <div style="color:#7a6bff; font-size:11px; margin-top:4px;">${p.price.toLocaleString()} so'm</div>
+        `;
+        div.onclick = () => buyProduct(p);
+        grid.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Mahsulotlarni olishda xato:", err);
+      grid.innerHTML = "<p style='color:#ff6b6b'>Backendga ulanib bo'lmadi</p>";
+    }
+  }
 
-  // Demo balans (keyin backend'dan haqiqiy qiymat keladi)
-  document.getElementById('balance').textContent = '0';
+  async function buyProduct(product) {
+    if (!currentUser) return;
+
+    const confirmed = confirm(`${product.name}ni ${product.price.toLocaleString()} so'mga sotib olasizmi?`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/order`, {
+        method: "POST",
+        headers: apiHeaders,
+        body: JSON.stringify({
+          telegram_id: currentUser.telegram_id,
+          product_name: product.name,
+          price: product.price,
+        }),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        alert("✅ " + result.message);
+        loadUser(); // balansni yangilash
+      } else {
+        alert("❌ " + result.message);
+      }
+    } catch (err) {
+      alert("Xato yuz berdi, qaytadan urinib ko'ring");
+    }
+  }
+
+  // Sahifa ochilganda ishga tushadi
+  loadUser();
+  loadProducts();
 </script>
+
 </body>
 </html>
