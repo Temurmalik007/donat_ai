@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>BuyPin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--tg-theme-bg-color, #0e1320);
+    color: var(--tg-theme-text-color, #ffffff);
+    padding: 16px;
+    padding-bottom: 90px;
+  }
+  .profile { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .profile .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #444; display: flex; align-items: center; justify-content: center;
+  }
+  .profile .name { font-weight: 600; }
+  .profile .username { color: #8a8f9a; font-size: 13px; }
+
+  .balance-card {
+    background: linear-gradient(135deg, #5b4dff, #7a6bff);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .balance-card .label { font-size: 13px; opacity: 0.85; }
+  .balance-card .amount { font-size: 28px; font-weight: 700; margin: 4px 0 14px; }
+  .balance-actions { display: flex; gap: 8px; }
+  .balance-actions button {
+    flex: 1;
+    background: rgba(255,255,255,0.18);
+    border: none;
+    color: #fff;
+    padding: 10px 6px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+  .tabs button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 14px;
+    border: none;
+    background: #1b2230;
+    color: #8a8f9a;
+    font-weight: 600;
+  }
+  .tabs button.active { background: #2a2f6b; color: #fff; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .product {
+    background: #1b2230;
+    border-radius: 14px;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .product .icon { font-size: 28px; margin-bottom: 6px; }
+  .product .name { font-weight: 600; }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: #131a28;
+    padding: 10px 0 16px;
+  }
+  .bottom-nav .item {
+    flex: 1;
+    text-align: center;
+    color: #8a8f9a;
+    font-size: 11px;
+  }
+  .bottom-nav .item.active { color: #7a6bff; font-weight: 600; }
+</style>
+</head>
+<body>
+
+  <div class="profile">
+    <div class="avatar">👤</div>
+    <div>
+      <div class="name" id="userName">Foydalanuvchi</div>
+      <div class="username" id="userUsername">@username</div>
+    </div>
+  </div>
+
+  <div class="balance-card">
+    <div class="label">Balans</div>
+    <div class="amount"><span id="balance">0</span> so'm</div>
+    <div class="balance-actions">
+      <button onclick="alert('Bu yerga hisobni toldirish oqimi ulanadi')">💳 Hisobni to'ldirish</button>
+      <button onclick="alert('Bonus kodlar oynasi')">🎁 Bonus kodlar</button>
+      <button onclick="alert('Support chat ochiladi')">💬 Qo'llab-quvvatlash</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="active">O'yinlar</button>
+    <button>Promokodlar</button>
+  </div>
+
+  <div class="grid" id="productGrid"></div>
+
+  <div class="bottom-nav">
+    <div class="item active">🏠<br>Bosh sahifa</div>
+    <div class="item">🕓<br>Tarix</div>
+    <div class="item">👤<br>Sozlamalar</div>
+    <div class="item">🎮<br>Ijaraga</div>
+  </div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.expand();
+    tg.ready();
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name || 'Foydalanuvchi';
+      document.getElementById('userUsername').textContent = user.username ? '@' + user.username : '';
+    }
+  }
+
+  // Demo uchun statik mahsulotlar (keyinchalik backend API'dan keladi)
+  const products = [
+    { name: 'PUBG MOBILE', icon: '🔫' },
+    { name: 'FREE FIRE', icon: '🔥' },
+    { name: 'MOBILE LEGENDS', icon: '⚔️' },
+    { name: 'STAND OFF 2', icon: '🪖' },
+    { name: 'TG STARS', icon: '⭐' },
+    { name: 'TG PREMIUM', icon: '💎' },
+  ];
+
+  const grid = document.getElementById('productGrid');
+  products.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'product';
+    div.innerHTML = `<div class="icon">${p.icon}</div><div class="name">${p.name}</div>`;
+    div.onclick = () => alert(p.name + ' sotib olish oqimi shu yerga ulanadi');
+    grid.appendChild(div);
+  });
+
+  // Demo balans (keyin backend'dan haqiqiy qiymat keladi)
+  document.getElementById('balance').textContent = '0';
+</script>
+</body>
+</html>
