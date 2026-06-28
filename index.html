@@ -3,55 +3,59 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>BuyPin</title>
+<title>BuyPin - Oyinlar Toʻldirish</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   /* ========== ANIMATSIYALAR ========== */
   @keyframes slideInDown {
-    from { opacity: 0; transform: translateY(-30px); }
+    from { opacity: 0; transform: translateY(-40px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes glow {
-    0%, 100% { box-shadow: 0 0 15px rgba(91, 77, 255, 0.4), inset 0 0 20px rgba(91, 77, 255, 0.1); }
-    50% { box-shadow: 0 0 40px rgba(91, 77, 255, 1), inset 0 0 40px rgba(91, 77, 255, 0.4), 0 0 80px rgba(91, 77, 255, 0.6); }
+    0%, 100% { box-shadow: 0 0 20px rgba(91, 77, 255, 0.4), inset 0 0 20px rgba(91, 77, 255, 0.1); }
+    50% { box-shadow: 0 0 40px rgba(91, 77, 255, 0.9), inset 0 0 40px rgba(91, 77, 255, 0.3); }
   }
-  @keyframes scaleHover {
-    from { transform: scale(1); }
-    to { transform: scale(1.08); }
+  @keyframes buttonHover {
+    from { transform: translateY(0); box-shadow: 0 5px 15px rgba(91, 77, 255, 0.4); }
+    to { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(91, 77, 255, 0.7); }
   }
   @keyframes buttonClick {
     0% { transform: scale(1); }
-    50% { transform: scale(0.92); }
+    50% { transform: scale(0.95); }
     100% { transform: scale(1); }
-  }
-  @keyframes balanceFlash {
-    0%, 100% { color: #fff; text-shadow: 0 0 0px rgba(46, 204, 113, 0); }
-    50% { color: #2ecc71; text-shadow: 0 0 15px rgba(46, 204, 113, 0.8); }
   }
   @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(1.15); }
+    50% { opacity: 0.8; transform: scale(1.08); }
   }
   @keyframes spinner {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
   @keyframes slideInUp {
-    from { opacity: 0; transform: translateY(30px); }
+    from { opacity: 0; transform: translateY(40px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shine {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   .spinner {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(91, 77, 255, 0.3);
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(91, 77, 255, 0.3);
     border-top-color: #7a6bff;
     border-radius: 50%;
     animation: spinner 0.8s linear infinite;
@@ -59,259 +63,574 @@
 
   body {
     font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-    background: var(--tg-theme-bg-color, #0e1320);
-    color: var(--tg-theme-text-color, #ffffff);
-    padding: 16px;
-    padding-bottom: 90px;
+    background: linear-gradient(135deg, #0a0f1f 0%, #1a1f3a 100%);
+    color: #ffffff;
+    padding: 12px;
+    padding-bottom: 100px;
+    min-height: 100vh;
   }
-  .profile { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    margin-bottom: 16px;
-    animation: fadeInUp 0.5s ease-out;
+
+  /* ========== HEADER ========== */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: slideInDown 0.6s ease-out;
   }
-  .profile .avatar {
-    width: 44px; 
-    height: 44px; 
+  .header .avatar {
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: linear-gradient(135deg, #5b4dff, #7a6bff);
-    display: flex; 
-    align-items: center; 
+    display: flex;
+    align-items: center;
     justify-content: center;
+    font-size: 24px;
     font-weight: 700;
-    font-size: 18px;
+    box-shadow: 0 0 20px rgba(91, 77, 255, 0.5);
   }
-  .profile .name { font-weight: 600; }
-  .profile .username { color: #8a8f9a; font-size: 13px; }
-
-  .balance-card {
-    background: linear-gradient(135deg, #5b4dff, #7a6bff);
-    border-radius: 18px;
-    padding: 18px;
-    margin-bottom: 18px;
-    animation: slideInDown 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), glow 3s ease-in-out infinite;
-  }
-  .balance-card .label { 
-    font-size: 13px; 
-    opacity: 0.85;
-    animation: fadeInUp 0.6s ease-out 0.1s backwards;
-  }
-  .balance-card .amount { 
-    font-size: 28px; 
-    font-weight: 700; 
-    margin: 4px 0 14px;
-    animation: fadeInUp 0.6s ease-out 0.2s backwards;
-  }
-  .balance-actions { 
-    display: flex; 
-    gap: 8px;
-    animation: fadeInUp 0.6s ease-out 0.3s backwards;
-  }
-  .balance-actions button {
+  .header .info {
     flex: 1;
-    background: rgba(255,255,255,0.18);
-    border: none;
+  }
+  .header .name {
+    font-weight: 700;
+    font-size: 16px;
     color: #fff;
-    padding: 10px 6px;
-    border-radius: 12px;
+  }
+  .header .username {
     font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .balance-actions button:hover {
-    background: rgba(255,255,255,0.28);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  }
-  .balance-actions button:active {
-    animation: buttonClick 0.2s ease;
+    color: #8a8f9a;
   }
 
-  .tabs { 
-    display: flex; 
-    gap: 10px; 
-    margin-bottom: 16px;
+  /* ========== BALANS CARD ========== */
+  .balance-section {
+    background: linear-gradient(135deg, #5b4dff 0%, #7a6bff 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    animation: slideInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), glow 3s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
   }
-  .tabs button {
-    flex: 1;
-    padding: 10px;
+  .balance-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .balance-label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 6px;
+    animation: fadeInUp 0.7s ease-out 0.1s backwards;
+  }
+  .balance-amount {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    animation: fadeInUp 0.7s ease-out 0.2s backwards;
+  }
+  .balance-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    animation: fadeInUp 0.7s ease-out 0.3s backwards;
+  }
+  .balance-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 12px 8px;
     border-radius: 14px;
-    border: none;
-    background: #1b2230;
-    color: #8a8f9a;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease-out backwards;
   }
-  .tabs button:nth-child(1) { animation-delay: 0.4s; }
-  .tabs button:nth-child(2) { animation-delay: 0.5s; }
-  .tabs button.active { 
-    background: #2a2f6b; 
-    color: #fff;
-    box-shadow: 0 0 20px rgba(91, 77, 255, 0.4);
-  }
-  .tabs button:hover:not(.active) {
-    background: #252a3d;
+  .balance-btn:hover {
+    background: rgba(255,255,255,0.3);
     transform: translateY(-2px);
   }
+  .balance-btn:active {
+    animation: buttonClick 0.2s ease;
+  }
 
-  .grid {
+  /* ========== TABS ========== */
+  .tabs {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
+    margin-bottom: 20px;
   }
-  .product {
-    background: #1b2230;
+  .tabs button {
+    padding: 12px;
     border-radius: 14px;
-    padding: 10px;
-    text-align: center;
-    font-size: 12px;
+    border: 2px solid transparent;
+    background: #1a1f3a;
+    color: #8a8f9a;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: fadeInUp 0.5s ease-out backwards;
+  }
+  .tabs button:nth-child(1) { animation-delay: 0.4s; }
+  .tabs button:nth-child(2) { animation-delay: 0.45s; }
+  .tabs button:nth-child(3) { animation-delay: 0.5s; }
+  .tabs button.active {
+    background: linear-gradient(135deg, #5b4dff, #7a6bff);
+    color: #fff;
+    border-color: #7a6bff;
+    box-shadow: 0 0 20px rgba(91, 77, 255, 0.5);
+  }
+  .tabs button:hover:not(.active) {
+    background: #252a4a;
+    border-color: #5b4dff;
+  }
+
+  /* ========== PRODUCT GRID ========== */
+  .products-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .product-card {
+    background: linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%);
+    border: 1px solid rgba(91, 77, 255, 0.2);
+    border-radius: 18px;
+    padding: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     animation: fadeInUp 0.5s ease-out backwards;
     position: relative;
     overflow: hidden;
   }
-  .product:nth-child(1) { animation-delay: 0.6s; }
-  .product:nth-child(2) { animation-delay: 0.65s; }
-  .product:nth-child(3) { animation-delay: 0.7s; }
-  .product:nth-child(4) { animation-delay: 0.75s; }
-  .product:nth-child(5) { animation-delay: 0.8s; }
-  .product:nth-child(6) { animation-delay: 0.85s; }
-
-  .product:hover {
-    transform: translateY(-8px) scale(1.06);
-    box-shadow: 0 15px 40px rgba(91, 77, 255, 0.5);
-    background: linear-gradient(135deg, #252a3d, #2a2f6b);
+  .product-card:nth-child(1) { animation-delay: 0.55s; }
+  .product-card:nth-child(2) { animation-delay: 0.6s; }
+  .product-card:nth-child(3) { animation-delay: 0.65s; }
+  .product-card:nth-child(4) { animation-delay: 0.7s; }
+  .product-card:nth-child(5) { animation-delay: 0.75s; }
+  .product-card:nth-child(6) { animation-delay: 0.8s; }
+  
+  .product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(91, 77, 255, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
-  .product:active {
+  
+  .product-card:hover {
+    transform: translateY(-8px) scale(1.04);
+    border-color: rgba(91, 77, 255, 0.5);
+    box-shadow: 0 20px 50px rgba(91, 77, 255, 0.3);
+    background: linear-gradient(135deg, #252a4a 0%, #2a2f5a 100%);
+  }
+  .product-card:hover::before {
+    opacity: 1;
+  }
+  .product-card:active {
     animation: buttonClick 0.2s ease;
   }
-  .product .icon { 
-    font-size: 28px; 
-    margin-bottom: 6px;
-    animation: pulse 2s ease-in-out infinite;
-    display: inline-block;
+
+  .product-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+    animation: pulse 2.5s ease-in-out infinite;
+    display: block;
   }
-  .product .name { 
-    font-weight: 600;
+  .product-name {
+    font-weight: 700;
+    font-size: 14px;
     color: #fff;
+    margin-bottom: 4px;
+  }
+  .product-desc {
+    font-size: 11px;
+    color: #8a8f9a;
   }
 
+  /* ========== VARIANT MODAL ========== */
+  .variant-view {
+    display: none;
+    animation: fadeInUp 0.4s ease-out;
+  }
+  .variant-view.active {
+    display: block;
+  }
+  .variant-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    animation: slideInDown 0.5s ease-out;
+  }
+  .variant-back {
+    background: #1a1f3a;
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s ease;
+  }
+  .variant-back:hover {
+    background: #252a4a;
+    transform: scale(1.05);
+  }
+  .variant-title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .variant-input-group {
+    margin-bottom: 16px;
+    animation: fadeInUp 0.5s ease-out 0.1s backwards;
+  }
+  .variant-input-label {
+    font-size: 12px;
+    color: #8a8f9a;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .variant-input {
+    width: 100%;
+    background: #1a1f3a;
+    border: 2px solid rgba(91, 77, 255, 0.2);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  .variant-input:focus {
+    outline: none;
+    border-color: #5b4dff;
+    background: #252a4a;
+    box-shadow: 0 0 15px rgba(91, 77, 255, 0.3);
+  }
+  .variant-input::placeholder {
+    color: #5a5f7a;
+  }
+
+  .variants-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .variant-item {
+    background: linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%);
+    border: 2px solid rgba(91, 77, 255, 0.2);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: scaleIn 0.4s ease-out backwards;
+  }
+  .variant-item:nth-child(1) { animation-delay: 0.2s; }
+  .variant-item:nth-child(2) { animation-delay: 0.25s; }
+  .variant-item:nth-child(3) { animation-delay: 0.3s; }
+  .variant-item:nth-child(4) { animation-delay: 0.35s; }
+  .variant-item:nth-child(5) { animation-delay: 0.4s; }
+  .variant-item:nth-child(6) { animation-delay: 0.45s; }
+  
+  .variant-item:hover {
+    border-color: #5b4dff;
+    background: linear-gradient(135deg, #252a4a 0%, #2a2f5a 100%);
+    box-shadow: 0 10px 30px rgba(91, 77, 255, 0.3);
+    transform: translateY(-4px);
+  }
+  .variant-item:active {
+    animation: buttonClick 0.2s ease;
+  }
+
+  .variant-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .variant-price {
+    font-size: 12px;
+    color: #7a6bff;
+    font-weight: 700;
+  }
+
+  /* ========== BUTTONS ========== */
+  .buy-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #5b4dff 0%, #7a6bff 100%);
+    border: none;
+    color: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 10px 30px rgba(91, 77, 255, 0.4);
+    animation: fadeInUp 0.6s ease-out 0.5s backwards;
+  }
+  .buy-btn:hover {
+    animation: buttonHover 0.3s ease forwards;
+  }
+  .buy-btn:active {
+    animation: buttonClick 0.2s ease;
+  }
+  .buy-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ========== HISTORY ========== */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .history-item {
+    background: linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%);
+    border-left: 4px solid #5b4dff;
+    border-radius: 12px;
+    padding: 14px;
+    animation: fadeInUp 0.5s ease-out backwards;
+  }
+  .history-item-product {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .history-item-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #8a8f9a;
+  }
+  .history-item-price {
+    color: #2ecc71;
+    font-weight: 600;
+  }
+  .history-item-status {
+    background: #2a2f6b;
+    color: #7a6bff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  /* ========== SETTINGS ========== */
+  .settings-section {
+    background: linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    animation: fadeInUp 0.5s ease-out backwards;
+  }
+  .settings-section:nth-child(1) { animation-delay: 0.1s; }
+  .settings-section:nth-child(2) { animation-delay: 0.15s; }
+  .settings-section:nth-child(3) { animation-delay: 0.2s; }
+  
+  .settings-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .settings-select {
+    width: 100%;
+    background: #0a0f1f;
+    color: #fff;
+    border: 2px solid rgba(91, 77, 255, 0.2);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .settings-select:focus {
+    outline: none;
+    border-color: #5b4dff;
+    box-shadow: 0 0 15px rgba(91, 77, 255, 0.3);
+  }
+  .settings-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .settings-checkbox input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .settings-button {
+    width: 100%;
+    background: #2a2f6b;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+  }
+  .settings-button:hover {
+    background: #3a3f7b;
+    transform: translateY(-2px);
+  }
+  .settings-footer {
+    text-align: center;
+    color: #8a8f9a;
+    font-size: 12px;
+    margin-top: 24px;
+  }
+
+  /* ========== BOTTOM NAV ========== */
   .bottom-nav {
     position: fixed;
-    bottom: 0; 
-    left: 0; 
+    bottom: 0;
+    left: 0;
     right: 0;
+    background: rgba(10, 15, 31, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(91, 77, 255, 0.2);
     display: flex;
-    background: #131a28;
-    padding: 10px 0 16px;
+    justify-content: space-around;
+    padding: 12px 0 16px;
     animation: slideInUp 0.5s ease-out;
   }
-  .bottom-nav .item {
+  .nav-item {
     flex: 1;
     text-align: center;
     color: #8a8f9a;
     font-size: 11px;
+    cursor: pointer;
     transition: all 0.3s ease;
+    padding: 8px 0;
   }
-  .bottom-nav .item.active { 
-    color: #7a6bff; 
-    font-weight: 600;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  .bottom-nav .item:hover {
-    color: #fff;
+  .nav-item.active {
+    color: #5b4dff;
+    font-weight: 700;
   }
 
-  @keyframes slideInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* ========== LOADING ========== */
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a8f9a;
+  }
+  .loading .spinner {
+    margin-bottom: 12px;
   }
 </style>
 </head>
 <body>
 
-  <div class="profile">
-    <div class="avatar">👤</div>
-    <div>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="avatar" id="avatar">👤</div>
+    <div class="info">
       <div class="name" id="userName">Foydalanuvchi</div>
-      <div class="username" id="userUsername">@username</div>
+      <div class="username" id="userUsername"></div>
     </div>
   </div>
 
-  <div class="balance-card">
-    <div class="label">Balans</div>
-    <div class="amount"><span id="balance">0</span> so'm</div>
+  <!-- BALANCE SECTION -->
+  <div class="balance-section">
+    <div class="balance-label">💰 Balans</div>
+    <div class="balance-amount"><span id="balance">0</span> so'm</div>
     <div class="balance-actions">
-      <button onclick="alert('Bu yerga hisobni toldirish oqimi ulanadi')">💳 Hisobni to'ldirish</button>
-      <button onclick="alert('Bonus kodlar oynasi')">🎁 Bonus kodlar</button>
-      <button onclick="alert('Support chat ochiladi')">💬 Qo'llab-quvvatlash</button>
+      <button class="balance-btn" onclick="alert('💳 Hisobni to\'ldirish oqimi keyin qo\'shiladi')">💳 To'ldirish</button>
+      <button class="balance-btn" onclick="alert('🎁 Bonus kodlar keyin qo\'shiladi')">🎁 Bonus</button>
+      <button class="balance-btn" onclick="alert('📞 Support: @S_T_bot')">📞 Support</button>
     </div>
   </div>
 
+  <!-- TABS -->
   <div class="tabs">
-    <button class="active" onclick="switchTab('oyinlar')">O'yinlar</button>
-    <button onclick="switchTab('tarix')">📜 Tarix</button>
-    <button onclick="switchTab('sozlamalar')">⚙️ Sozlamalar</button>
+    <button class="active" onclick="switchTab('products')">🎮 O'yinlar</button>
+    <button onclick="switchTab('history')">📜 Tarix</button>
+    <button onclick="switchTab('settings')">⚙️ Sozlamalar</button>
   </div>
 
-  <div class="grid" id="productGrid"></div>
+  <!-- PRODUCTS VIEW -->
+  <div id="productsView" class="products-container"></div>
 
-  <div id="tarixView" style="display:none;">
-    <div id="historyList" style="display:flex; flex-direction:column; gap:10px;"></div>
+  <!-- HISTORY VIEW -->
+  <div id="historyView" style="display:none;">
+    <div id="historyList" class="history-list"></div>
   </div>
 
-  <div id="sozlamalarView" style="display:none;">
-    <div style="background:#1b2230; border-radius:14px; padding:14px; margin-bottom:10px;">
-      <div style="font-weight:600; margin-bottom:8px;">🌐 Til</div>
-      <select style="width:100%; background:#252a3d; color:#fff; border:none; padding:8px; border-radius:8px; cursor:pointer;">
+  <!-- SETTINGS VIEW -->
+  <div id="settingsView" style="display:none;">
+    <div class="settings-section">
+      <div class="settings-title">🌐 Til</div>
+      <select class="settings-select">
         <option>O'zbekcha</option>
         <option>English</option>
         <option>Русский</option>
       </select>
     </div>
-    <div style="background:#1b2230; border-radius:14px; padding:14px; margin-bottom:10px;">
-      <div style="font-weight:600; margin-bottom:8px;">🔔 Bildirishnomalar</div>
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-        <input type="checkbox" checked style="width:18px; height:18px; cursor:pointer;">
+    <div class="settings-section">
+      <div class="settings-title">🔔 Bildirishnomalar</div>
+      <label class="settings-checkbox">
+        <input type="checkbox" checked>
         <span>Buyurtma yangiliklarini olish</span>
       </label>
     </div>
-    <div style="background:#1b2230; border-radius:14px; padding:14px; margin-bottom:10px;">
-      <div style="font-weight:600; margin-bottom:8px;">👤 Akkaunt</div>
-      <button onclick="showAccountInfo()" style="width:100%; background:#2a2f6b; color:#fff; border:none; padding:10px; border-radius:8px; font-size:13px; cursor:pointer; margin-bottom:8px; transition:all 0.3s ease;">📋 Akkaunt ma'lumotlari</button>
-      <button onclick="alert('Qo\'llab-quvvatlash: @S_T_bot')" style="width:100%; background:#2a2f6b; color:#fff; border:none; padding:10px; border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.3s ease;">💬 Qo'llab-quvvatlashga murojaat</button>
+    <div class="settings-section">
+      <div class="settings-title">👤 Akkaunt</div>
+      <button class="settings-button" onclick="showAccountInfo()">📋 Akkaunt ma'lumotlari</button>
+      <button class="settings-button" onclick="alert('Support: @S_T_bot')">💬 Qo'llab-quvvatlash</button>
     </div>
-    <div style="text-align:center; color:#8a8f9a; font-size:12px; margin-top:20px;">
-      BuyPin v1.0 | @Donat_mini_bot
+    <div class="settings-footer">
+      BuyPin v2.0 | @Donat_mini_bot
     </div>
   </div>
 
+  <!-- BOTTOM NAV -->
   <div class="bottom-nav">
-    <div class="item active">🏠<br>Bosh sahifa</div>
-    <div class="item">🕓<br>Tarix</div>
-    <div class="item">👤<br>Sozlamalar</div>
-    <div class="item">🎮<br>Ijaraga</div>
+    <div class="nav-item active" onclick="switchTab('products')">🏠 Bosh</div>
+    <div class="nav-item" onclick="switchTab('history')">📜 Tarix</div>
+    <div class="nav-item" onclick="switchTab('settings')">⚙️ Sozlamalar</div>
+    <div class="nav-item">🎁 Ijaraga</div>
   </div>
 
 <script>
-  // ⚠️ Shu yerga o'zingizning ngrok linkingizni qo'ying (oxiridagi / siz)
   const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
-
   const tg = window.Telegram?.WebApp;
-  let currentUser = null; // backend'dan kelgan foydalanuvchi ma'lumoti
+  let currentUser = null;
+  let selectedProduct = null;
 
   if (tg) {
     tg.expand();
     tg.ready();
   }
 
-  // ngrok bepul tarifda har bir so'rovga ogohlantirish sahifasini
-  // qo'shadi, shu headerni yuborsak, to'g'ridan-to'g'ri javob qaytaradi.
   const apiHeaders = {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
@@ -325,6 +644,7 @@
 
     document.getElementById('userName').textContent = first_name;
     document.getElementById('userUsername').textContent = username ? '@' + username : '';
+    document.getElementById('avatar').textContent = first_name.charAt(0).toUpperCase() || '👤';
     document.getElementById('balance').textContent = '...';
 
     try {
@@ -336,88 +656,102 @@
       currentUser = await res.json();
       const balanceEl = document.getElementById('balance');
       balanceEl.textContent = currentUser.balance.toLocaleString();
-      // Balans o'zgarsa flash animatsiya
       balanceEl.style.animation = 'none';
       setTimeout(() => {
         balanceEl.style.animation = 'balanceFlash 0.8s ease';
       }, 10);
     } catch (err) {
-      console.error("Backendga ulanib bo'lmadi:", err);
+      console.error("Backend xatosi:", err);
       document.getElementById('balance').textContent = "xato";
     }
   }
 
   async function loadProducts() {
-    const grid = document.getElementById('productGrid');
-    grid.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner"></div> Yuklanmoqda...</div>';
+    const container = document.getElementById('productsView');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
     
     try {
       const res = await fetch(`${API_BASE}/products`, { headers: apiHeaders });
       const products = await res.json();
 
-      grid.innerHTML = "";
+      container.innerHTML = "";
       products.forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `
-          <div class="icon">${p.icon}</div>
-          <div class="name">${p.name}</div>
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.style.animationDelay = (idx * 0.05) + 's';
+        card.innerHTML = `
+          <div class="product-icon">${p.icon}</div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-desc">${p.variants.length} paket</div>
         `;
-        div.style.animationDelay = (idx * 0.05) + 's';
-        div.onclick = () => buyProduct(p);
-        grid.appendChild(div);
+        card.onclick = () => showVariants(p);
+        container.appendChild(card);
       });
     } catch (err) {
-      console.error("Mahsulotlarni olishda xato:", err);
-      grid.innerHTML = "<p style='color:#ff6b6b'>Backendga ulanib bo'lmadi</p>";
+      container.innerHTML = '<p style="color:#ff6b6b; text-align:center;">Backendga ulanib bo\'lmadi</p>';
     }
   }
 
-  async function buyProduct(product) {
-    showVariants(product);
-  }
-
   function showVariants(product) {
-    const grid = document.getElementById('productGrid');
-    const tabs = document.querySelector('.tabs');
+    selectedProduct = product;
+    const container = document.getElementById('productsView');
+    
+    container.innerHTML = `
+      <div class="variant-view active">
+        <div class="variant-header">
+          <button class="variant-back" onclick="loadProducts()">←</button>
+          <div class="variant-title">${product.icon} ${product.name}</div>
+        </div>
 
-    tabs.style.display = 'none';
+        <div class="variant-input-group">
+          <label class="variant-input-label">👤 O'yinchi ID / Login</label>
+          <input type="text" id="playerInput" class="variant-input" placeholder="O'yinchi ID yoki akkaunt nomini kiriting...">
+        </div>
 
-    grid.style.gridTemplateColumns = '1fr';
-    grid.innerHTML = `
-      <div style="text-align:left; margin-bottom:10px;">
-        <button id="backBtn" style="background:#1b2230; color:#fff; border:none; padding:8px 14px; border-radius:10px; font-size:13px;">← Orqaga</button>
+        <div class="variants-grid" id="variantsGrid"></div>
+
+        <button class="buy-btn" onclick="completePurchase()" id="buyBtn">SOTIB OLISH</button>
       </div>
-      <div style="font-weight:700; font-size:16px; margin-bottom:10px;">${product.icon} ${product.name}</div>
     `;
 
-    product.variants.forEach(v => {
-      const row = document.createElement('div');
-      row.className = 'product';
-      row.style.display = 'flex';
-      row.style.justifyContent = 'space-between';
-      row.style.alignItems = 'center';
-      row.style.textAlign = 'left';
-      row.style.marginBottom = '8px';
-      row.innerHTML = `
-        <span>${v.label}</span>
-        <span style="color:#7a6bff; font-weight:600;">${v.price.toLocaleString()} so'm</span>
+    const grid = document.getElementById('variantsGrid');
+    product.variants.forEach((v, idx) => {
+      const item = document.createElement('div');
+      item.className = 'variant-item';
+      item.style.animationDelay = (idx * 0.05) + 's';
+      item.innerHTML = `
+        <div class="variant-label">${v.label}</div>
+        <div class="variant-price">${v.price.toLocaleString()} so'm</div>
       `;
-      row.onclick = () => buyVariant(product, v);
-      grid.appendChild(row);
+      item.onclick = () => selectVariant(item, v);
+      grid.appendChild(item);
     });
-
-    document.getElementById('backBtn').onclick = () => {
-      tabs.style.display = 'flex';
-      grid.style.gridTemplateColumns = '1fr 1fr 1fr';
-      loadProducts();
-    };
   }
 
-  async function buyVariant(product, variant) {
+  let selectedVariant = null;
+  function selectVariant(element, variant) {
+    document.querySelectorAll('.variant-item').forEach(e => {
+      e.style.borderColor = 'rgba(91, 77, 255, 0.2)';
+      e.style.background = 'linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%)';
+    });
+    element.style.borderColor = '#5b4dff';
+    element.style.background = 'linear-gradient(135deg, #5b4dff 0%, #7a6bff 100%)';
+    selectedVariant = variant;
+  }
+
+  async function completePurchase() {
+    if (!selectedVariant) {
+      alert('Paketni tanlang');
+      return;
+    }
+    const playerInput = document.getElementById('playerInput').value.trim();
+    if (!playerInput) {
+      alert('O\'yinchi ID/Login kiriting');
+      return;
+    }
     if (!currentUser) return;
 
-    const confirmed = confirm(`${product.name} — ${variant.label}ni ${variant.price.toLocaleString()} so'mga sotib olasizmi?`);
+    const confirmed = confirm(`${selectedProduct.name} - ${selectedVariant.label}\n${selectedVariant.price.toLocaleString()} so'm\n\nTasdiq?`);
     if (!confirmed) return;
 
     try {
@@ -426,8 +760,8 @@
         headers: apiHeaders,
         body: JSON.stringify({
           telegram_id: currentUser.telegram_id,
-          product_name: `${product.name} - ${variant.label}`,
-          price: variant.price,
+          product_name: `${selectedProduct.name} - ${selectedVariant.label}`,
+          price: selectedVariant.price,
         }),
       });
       const result = await res.json();
@@ -435,23 +769,22 @@
       if (result.success) {
         alert("✅ " + result.message);
         loadUser();
+        loadProducts();
       } else {
         alert("❌ " + result.message);
       }
     } catch (err) {
-      alert("Xato yuz berdi, qaytadan urinib ko'ring");
+      alert("Xato yuz berdi");
     }
   }
 
   async function loadHistory() {
     const historyList = document.getElementById('historyList');
-    historyList.innerHTML = '<div style="text-align:center;"><div class="spinner" style="margin:20px auto;"></div> Yuklanmoqda...</div>';
+    historyList.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
     
     try {
       const res = await fetch(`${API_BASE}/admin/orders?key=buypin_admin_2026`, { headers: apiHeaders });
       const orders = await res.json();
-      
-      // Faqat bu foydalanuvchining buyurtmalarini ko'rsat
       const userOrders = orders.filter(o => o.telegram_id === currentUser.telegram_id);
       
       if (userOrders.length === 0) {
@@ -462,50 +795,59 @@
       historyList.innerHTML = '';
       userOrders.forEach((order, idx) => {
         const div = document.createElement('div');
-        div.style.cssText = 'background:#1b2230; border-radius:14px; padding:12px; animation:fadeInUp 0.5s ease-out backwards;';
+        div.className = 'history-item';
         div.style.animationDelay = (idx * 0.05) + 's';
         const date = new Date(order.created_at).toLocaleString('uz-UZ');
         div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-weight:600;">${order.product_name}</span>
-            <span style="color:#2ecc71; font-weight:600;">-${order.price.toLocaleString()} so'm</span>
+          <div class="history-item-product">${order.product_name}</div>
+          <div class="history-item-meta">
+            <span>${date}</span>
+            <span class="history-item-price">-${order.price.toLocaleString()} so'm</span>
           </div>
-          <div style="font-size:11px; color:#8a8f9a;">${date}</div>
-          <div style="margin-top:6px; padding:6px 10px; background:#2a2f6b; border-radius:8px; font-size:11px; color:#7a6bff; font-weight:600;">✓ ${order.status}</div>
+          <div class="history-item-status">✓ ${order.status}</div>
         `;
         historyList.appendChild(div);
       });
     } catch (err) {
-      console.error("Tarixni olishda xato:", err);
       historyList.innerHTML = '<p style="color:#ff6b6b;">Backendga ulanib bo\'lmadi</p>';
     }
   }
 
   function showAccountInfo() {
     if (!currentUser) return;
-    const info = `
-📊 AKKAUNT MA'LUMOTLARI
-━━━━━━━━━━━━━━━━━━━━━
+    const info = `📊 AKKAUNT
+━━━━━━━━━━━━━━━
 🆔 ID: ${currentUser.telegram_id}
 👤 Ism: ${currentUser.first_name}
-📱 Username: @${currentUser.username || 'username yo\'q'}
+📱 @${currentUser.username || 'no username'}
 💰 Balans: ${currentUser.balance.toLocaleString()} so'm
-━━━━━━━━━━━━━━━━━━━━━`;
+━━━━━━━━━━━━━━━`;
     alert(info);
   }
 
   function switchTab(tab) {
-    document.getElementById('productGrid').style.display = tab === 'oyinlar' ? 'grid' : 'none';
-    document.getElementById('tarixView').style.display = tab === 'tarix' ? 'block' : 'none';
-    document.getElementById('sozlamalarView').style.display = tab === 'sozlamalar' ? 'block' : 'none';
+    document.getElementById('productsView').style.display = tab === 'products' ? 'grid' : 'none';
+    document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
+    document.getElementById('settingsView').style.display = tab === 'settings' ? 'block' : 'none';
     
-    if (tab === 'oyinlar') loadProducts();
-    if (tab === 'tarix') loadHistory();
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    if (tab === 'products') document.querySelectorAll('.nav-item')[0].classList.add('active');
+    if (tab === 'history') document.querySelectorAll('.nav-item')[1].classList.add('active');
+    if (tab === 'settings') document.querySelectorAll('.nav-item')[2].classList.add('active');
+    
+    if (tab === 'products') loadProducts();
+    if (tab === 'history') loadHistory();
   }
 
-  // Sahifa ochilganda ishga tushadi
-  loadUser();
-  loadProducts();
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUser();
+    loadProducts();
+  });
+
+  @keyframes balanceFlash {
+    0%, 100% { color: #fff; }
+    50% { color: #2ecc71; }
+  }
 </script>
 
 </body>
