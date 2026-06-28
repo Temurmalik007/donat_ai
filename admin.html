@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BuyPin Admin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0e1320;
+    color: #fff;
+    padding: 16px;
+  }
+  h1 { font-size: 20px; margin-bottom: 16px; }
+  .login-box {
+    max-width: 320px;
+    margin: 80px auto;
+    background: #1b2230;
+    padding: 24px;
+    border-radius: 16px;
+  }
+  .login-box input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    margin: 10px 0;
+    background: #0e1320;
+    color: #fff;
+  }
+  .login-box button, .action-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #5b4dff;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+  .tabs button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #1b2230;
+    color: #8a8f9a;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tabs button.active { background: #2a2f6b; color: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #1b2230; }
+  th { color: #8a8f9a; font-weight: 600; }
+  .add-balance-row { display: flex; gap: 6px; }
+  .add-balance-row input {
+    width: 90px;
+    padding: 6px;
+    border-radius: 8px;
+    border: none;
+    background: #1b2230;
+    color: #fff;
+  }
+  .add-balance-row button {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #2ecc71;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .hidden { display: none; }
+  .status-completed { color: #2ecc71; }
+  .status-pending { color: #f1c40f; }
+</style>
+</head>
+<body>
+
+  <div id="loginBox" class="login-box">
+    <h1>🔐 Admin kirish</h1>
+    <input type="password" id="adminKeyInput" placeholder="Admin parolni kiriting" />
+    <button onclick="login()">Kirish</button>
+  </div>
+
+  <div id="panel" class="hidden">
+    <h1>📊 BuyPin Admin Panel</h1>
+
+    <div class="tabs">
+      <button id="tabUsers" class="active" onclick="switchTab('users')">Foydalanuvchilar</button>
+      <button id="tabOrders" onclick="switchTab('orders')">Buyurtmalar</button>
+    </div>
+
+    <div id="usersView">
+      <table>
+        <thead>
+          <tr>
+            <th>Telegram ID</th>
+            <th>Ism</th>
+            <th>Username</th>
+            <th>Balans</th>
+            <th>Balans qo'shish</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="ordersView" class="hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Telegram ID</th>
+            <th>Mahsulot</th>
+            <th>Narx</th>
+            <th>Holat</th>
+            <th>Sana</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  // ⚠️ Shu yerga ham ngrok linkingizni qo'ying (index.html'dagi bilan bir xil)
+  const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
+
+  let adminKey = "";
+  const apiHeaders = { "ngrok-skip-browser-warning": "true" };
+
+  function login() {
+    adminKey = document.getElementById('adminKeyInput').value.trim();
+    if (!adminKey) return;
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('panel').classList.remove('hidden');
+    loadUsers();
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabUsers').classList.toggle('active', tab === 'users');
+    document.getElementById('tabOrders').classList.toggle('active', tab === 'orders');
+    document.getElementById('usersView').classList.toggle('hidden', tab !== 'users');
+    document.getElementById('ordersView').classList.toggle('hidden', tab !== 'orders');
+    if (tab === 'users') loadUsers();
+    if (tab === 'orders') loadOrders();
+  }
+
+  async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = "<tr><td colspan='5'>Yuklanmoqda...</td></tr>";
+    try {
+      const res = await fetch(`${API_BASE}/admin/users?key=${encodeURIComponent(adminKey)}`, { headers: apiHeaders });
+      if (res.status === 403) { alert("Parol noto'g'ri"); location.reload(); return; }
+      const users = await res.json();
+
+      tbody.innerHTML = "";
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.telegram_id}</td>
+          <td>${u.first_name || '-'}</td>
+          <td>${u.username ? '@' + u.username : '-'}</td>
+          <td>${u.balance.toLocaleString()} so'm</td>
+          <td>
+            <div class="add-balance-row">
+              <input type="number" placeholder="summa" id="amount-${u.telegram_id}" />
+              <button onclick="addBalance(${u.telegram_id})">Qo'shish</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan='5'>Xato: backendga ulanib bo'lmadi</td></tr>";
+    }
+  }
+
+  async function addBalance(telegram_id) {
+    const input = document.getElementById(`amount-${telegram_id}`);
+    const amount = parseInt(input.value);
+    if (!amount || amount <= 0) { alert("To'g'ri summa kiriting"); return; }
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/balance/add?key=${encodeURIComponent(adminKey)}`, {
+        method: "POST",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ telegram_id, amount }),
+      });
+      const result = await res.json();
+      alert(`✅ Yangi balans: ${result.balance.toLocaleString()} so'm`);
+      loadUsers();
+    } catch (err) {
+      alert("Xato yuz berdi");
+    }
+  }
+
+  async function loadOrders() {
+    const tbody = document.getElementById('ordersTableBody');
+    tbody.innerHTML = "<tr><td colspan='6'>Yuklanmoqda...</td></tr>";
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders?key=${encodeURIComponent(adminKey)}`, { headers: apiHeaders });
+      const orders = await res.json();
+
+      tbody.innerHTML = "";
+      orders.forEach(o => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${o.id}</td>
+          <td>${o.telegram_id}</td>
+          <td>${o.product_name}</td>
+          <td>${o.price.toLocaleString()} so'm</td>
+          <td class="status-${o.status}">${o.status}</td>
+          <td>${o.created_at}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan='6'>Xato: backendga ulanib bo'lmadi</td></tr>";
+    }
+  }
+</script>
+</body>
+</html>
