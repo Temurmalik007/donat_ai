@@ -91,6 +91,7 @@
     <div class="tabs">
       <button id="tabUsers" class="active" onclick="switchTab('users')">Foydalanuvchilar</button>
       <button id="tabOrders" onclick="switchTab('orders')">Buyurtmalar</button>
+      <button id="tabProducts" onclick="switchTab('products')">Mahsulotlar</button>
     </div>
 
     <div id="usersView">
@@ -123,6 +124,21 @@
         <tbody id="ordersTableBody"></tbody>
       </table>
     </div>
+
+    <div id="productsView" class="hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Mahsulot</th>
+            <th>Paket</th>
+            <th>Hozirgi narx</th>
+            <th>Yangi narx</th>
+            <th>O'zgartirish</th>
+          </tr>
+        </thead>
+        <tbody id="productsTableBody"></tbody>
+      </table>
+    </div>
   </div>
 
 <script>
@@ -143,10 +159,13 @@
   function switchTab(tab) {
     document.getElementById('tabUsers').classList.toggle('active', tab === 'users');
     document.getElementById('tabOrders').classList.toggle('active', tab === 'orders');
+    document.getElementById('tabProducts').classList.toggle('active', tab === 'products');
     document.getElementById('usersView').classList.toggle('hidden', tab !== 'users');
     document.getElementById('ordersView').classList.toggle('hidden', tab !== 'orders');
+    document.getElementById('productsView').classList.toggle('hidden', tab !== 'products');
     if (tab === 'users') loadUsers();
     if (tab === 'orders') loadOrders();
+    if (tab === 'products') loadProducts();
   }
 
   async function loadUsers() {
@@ -220,6 +239,55 @@
       });
     } catch (err) {
       tbody.innerHTML = "<tr><td colspan='6'>Xato: backendga ulanib bo'lmadi</td></tr>";
+    }
+  }
+
+  async function loadProducts() {
+    const tbody = document.getElementById('productsTableBody');
+    tbody.innerHTML = "<tr><td colspan='5'>Yuklanmoqda...</td></tr>";
+    try {
+      const res = await fetch(`${API_BASE}/products`, { headers: apiHeaders });
+      const products = await res.json();
+
+      tbody.innerHTML = "";
+      products.forEach(p => {
+        p.variants.forEach((v, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx === 0 ? p.name + ' ' + p.icon : ''}</td>
+            <td>${v.label}</td>
+            <td>${v.price.toLocaleString()} so'm</td>
+            <td>
+              <input type="number" id="newprice-${v.id}" placeholder="yangi narx" style="width:100px; padding:6px; border-radius:6px; border:none; background:#1b2230; color:#fff;" />
+            </td>
+            <td>
+              <button onclick="updatePrice(${v.id})" style="padding:6px 10px; border-radius:6px; border:none; background:#f39c12; color:#fff; cursor:pointer; font-size:12px;">O'zgartirish</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    } catch (err) {
+      tbody.innerHTML = "<tr><td colspan='5'>Xato: backendga ulanib bo'lmadi</td></tr>";
+    }
+  }
+
+  async function updatePrice(variantId) {
+    const input = document.getElementById(`newprice-${variantId}`);
+    const newPrice = parseInt(input.value);
+    if (!newPrice || newPrice <= 0) { alert("To'g'ri narx kiriting"); return; }
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/variant/price?key=${encodeURIComponent(adminKey)}`, {
+        method: "POST",
+        headers: { ...apiHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ variant_id: variantId, new_price: newPrice }),
+      });
+      const result = await res.json();
+      alert("✅ Narx " + newPrice.toLocaleString() + " so'mga o'zgartirildi");
+      loadProducts();
+    } catch (err) {
+      alert("Xato yuz berdi");
     }
   }
 </script>
