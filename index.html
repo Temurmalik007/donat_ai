@@ -66,7 +66,7 @@
     background: linear-gradient(135deg, #0a0f1f 0%, #1a1f3a 100%);
     color: #ffffff;
     padding: 12px;
-    padding-bottom: 100px;
+    padding-bottom: 20px;
     min-height: 100vh;
   }
 
@@ -245,10 +245,18 @@
   }
 
   .product-icon {
-    font-size: 42px;
-    margin-bottom: 10px;
+    font-size: 52px;
+    margin-bottom: 12px;
     animation: pulse 2.5s ease-in-out infinite;
     display: block;
+    background: linear-gradient(135deg, rgba(91, 77, 255, 0.2) 0%, rgba(122, 107, 255, 0.1) 100%);
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
   }
   .product-name {
     font-weight: 700;
@@ -570,55 +578,13 @@
     </div>
   </div>
 
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="active" onclick="switchTab('products')">🎮 O'yinlar</button>
-    <button onclick="switchTab('history')">📜 Tarix</button>
-    <button onclick="switchTab('settings')">⚙️ Sozlamalar</button>
-  </div>
-
-  <!-- PRODUCTS VIEW -->
+  <!-- PRODUCTS VIEW - MAIN SECTION -->
   <div id="productsView" class="products-container"></div>
 
-  <!-- HISTORY VIEW -->
-  <div id="historyView" style="display:none;">
-    <div id="historyList" class="history-list"></div>
-  </div>
+  <!-- HISTORY VIEW - COMING SOON -->
+  <!-- SETTINGS VIEW - COMING SOON -->
 
-  <!-- SETTINGS VIEW -->
-  <div id="settingsView" style="display:none;">
-    <div class="settings-section">
-      <div class="settings-title">🌐 Til</div>
-      <select class="settings-select">
-        <option>O'zbekcha</option>
-        <option>English</option>
-        <option>Русский</option>
-      </select>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">🔔 Bildirishnomalar</div>
-      <label class="settings-checkbox">
-        <input type="checkbox" checked>
-        <span>Buyurtma yangiliklarini olish</span>
-      </label>
-    </div>
-    <div class="settings-section">
-      <div class="settings-title">👤 Akkaunt</div>
-      <button class="settings-button" onclick="showAccountInfo()">📋 Akkaunt ma'lumotlari</button>
-      <button class="settings-button" onclick="alert('Support: @S_T_bot')">💬 Qo'llab-quvvatlash</button>
-    </div>
-    <div class="settings-footer">
-      BuyPin v2.0 | @Donat_mini_bot
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('products')">🏠 Bosh</div>
-    <div class="nav-item" onclick="switchTab('history')">📜 Tarix</div>
-    <div class="nav-item" onclick="switchTab('settings')">⚙️ Sozlamalar</div>
-    <div class="nav-item">🎁 Ijaraga</div>
-  </div>
+  <!-- BOTTOM NAV - REMOVED FOR SIMPLIFIED VERSION -->
 
 <script>
   const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
