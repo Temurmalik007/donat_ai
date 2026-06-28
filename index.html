@@ -174,7 +174,6 @@
         div.innerHTML = `
           <div class="icon">${p.icon}</div>
           <div class="name">${p.name}</div>
-          <div style="color:#7a6bff; font-size:11px; margin-top:4px;">${p.price.toLocaleString()} so'm</div>
         `;
         div.onclick = () => buyProduct(p);
         grid.appendChild(div);
@@ -186,9 +185,50 @@
   }
 
   async function buyProduct(product) {
+    showVariants(product);
+  }
+
+  function showVariants(product) {
+    const grid = document.getElementById('productGrid');
+    const tabs = document.querySelector('.tabs');
+
+    tabs.style.display = 'none';
+
+    grid.style.gridTemplateColumns = '1fr';
+    grid.innerHTML = `
+      <div style="text-align:left; margin-bottom:10px;">
+        <button id="backBtn" style="background:#1b2230; color:#fff; border:none; padding:8px 14px; border-radius:10px; font-size:13px;">← Orqaga</button>
+      </div>
+      <div style="font-weight:700; font-size:16px; margin-bottom:10px;">${product.icon} ${product.name}</div>
+    `;
+
+    product.variants.forEach(v => {
+      const row = document.createElement('div');
+      row.className = 'product';
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.style.textAlign = 'left';
+      row.style.marginBottom = '8px';
+      row.innerHTML = `
+        <span>${v.label}</span>
+        <span style="color:#7a6bff; font-weight:600;">${v.price.toLocaleString()} so'm</span>
+      `;
+      row.onclick = () => buyVariant(product, v);
+      grid.appendChild(row);
+    });
+
+    document.getElementById('backBtn').onclick = () => {
+      tabs.style.display = 'flex';
+      grid.style.gridTemplateColumns = '1fr 1fr 1fr';
+      loadProducts();
+    };
+  }
+
+  async function buyVariant(product, variant) {
     if (!currentUser) return;
 
-    const confirmed = confirm(`${product.name}ni ${product.price.toLocaleString()} so'mga sotib olasizmi?`);
+    const confirmed = confirm(`${product.name} — ${variant.label}ni ${variant.price.toLocaleString()} so'mga sotib olasizmi?`);
     if (!confirmed) return;
 
     try {
@@ -197,15 +237,15 @@
         headers: apiHeaders,
         body: JSON.stringify({
           telegram_id: currentUser.telegram_id,
-          product_name: product.name,
-          price: product.price,
+          product_name: `${product.name} - ${variant.label}`,
+          price: variant.price,
         }),
       });
       const result = await res.json();
 
       if (result.success) {
         alert("✅ " + result.message);
-        loadUser(); // balansni yangilash
+        loadUser();
       } else {
         alert("❌ " + result.message);
       }
