@@ -696,6 +696,49 @@
     selectedProduct = product;
     const container = document.getElementById('productsView');
     
+    // Product'ga qarab input field'larni sozlash
+    let inputFieldHTML = '';
+    if (product.name.includes('TG STARS') || product.name.includes('TG PREMIUM')) {
+      inputFieldHTML = `
+        <div class="variant-input-group">
+          <label class="variant-input-label">@️ Telegram Username</label>
+          <input type="text" id="playerInput" class="variant-input" placeholder="@username (@ belgi bilan)">
+        </div>
+      `;
+    } else if (product.name.includes('FREE FIRE')) {
+      inputFieldHTML = `
+        <div class="variant-input-group">
+          <label class="variant-input-label">🆔 Foydalanuvchi ID</label>
+          <input type="text" id="playerInput" class="variant-input" placeholder="O'yinchi ID kiriting...">
+        </div>
+      `;
+    } else if (product.name.includes('MOBILE LEGENDS')) {
+      inputFieldHTML = `
+        <div class="variant-input-group">
+          <label class="variant-input-label">🆔 O'yinchi ID</label>
+          <input type="text" id="playerInput" class="variant-input" placeholder="O'yinchi ID kiriting...">
+        </div>
+        <div class="variant-input-group">
+          <label class="variant-input-label">🖥️ Server</label>
+          <select id="serverInput" class="variant-input" style="cursor:pointer;">
+            <option>VIP (Global)</option>
+            <option>PH (Philippines)</option>
+            <option>ID (Indonesia)</option>
+            <option>MY (Malaysia)</option>
+            <option>TH (Thailand)</option>
+            <option>SG (Singapore)</option>
+          </select>
+        </div>
+      `;
+    } else {
+      inputFieldHTML = `
+        <div class="variant-input-group">
+          <label class="variant-input-label">👤 O'yinchi ID / Login</label>
+          <input type="text" id="playerInput" class="variant-input" placeholder="O'yinchi ID yoki akkaunt nomini kiriting...">
+        </div>
+      `;
+    }
+    
     container.innerHTML = `
       <div class="variant-view active">
         <div class="variant-header">
@@ -703,10 +746,7 @@
           <div class="variant-title">${product.icon} ${product.name}</div>
         </div>
 
-        <div class="variant-input-group">
-          <label class="variant-input-label">👤 O'yinchi ID / Login</label>
-          <input type="text" id="playerInput" class="variant-input" placeholder="O'yinchi ID yoki akkaunt nomini kiriting...">
-        </div>
+        ${inputFieldHTML}
 
         <div class="variants-grid" id="variantsGrid"></div>
 
@@ -746,9 +786,16 @@
     }
     const playerInput = document.getElementById('playerInput').value.trim();
     if (!playerInput) {
-      alert('O\'yinchi ID/Login kiriting');
+      alert('O\'yinchi ma\'lumotlarini kiriting');
       return;
     }
+    
+    let details = playerInput;
+    if (selectedProduct.name.includes('MOBILE LEGENDS')) {
+      const serverInput = document.getElementById('serverInput')?.value || '';
+      details = playerInput + ' (' + serverInput + ')';
+    }
+    
     if (!currentUser) return;
 
     const confirmed = confirm(`${selectedProduct.name} - ${selectedVariant.label}\n${selectedVariant.price.toLocaleString()} so'm\n\nTasdiq?`);
@@ -760,7 +807,7 @@
         headers: apiHeaders,
         body: JSON.stringify({
           telegram_id: currentUser.telegram_id,
-          product_name: `${selectedProduct.name} - ${selectedVariant.label}`,
+          product_name: `${selectedProduct.name} - ${selectedVariant.label} (${details})`,
           price: selectedVariant.price,
         }),
       });
@@ -826,15 +873,24 @@
   }
 
   function switchTab(tab) {
+    // Views ni hide/show qilish
     document.getElementById('productsView').style.display = tab === 'products' ? 'grid' : 'none';
     document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
     document.getElementById('settingsView').style.display = tab === 'settings' ? 'block' : 'none';
     
+    // Tab buttons'ni active qilish
+    document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+    if (tab === 'products') document.querySelectorAll('.tabs button')[0].classList.add('active');
+    if (tab === 'history') document.querySelectorAll('.tabs button')[1].classList.add('active');
+    if (tab === 'settings') document.querySelectorAll('.tabs button')[2].classList.add('active');
+    
+    // Nav items'ni active qilish
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     if (tab === 'products') document.querySelectorAll('.nav-item')[0].classList.add('active');
     if (tab === 'history') document.querySelectorAll('.nav-item')[1].classList.add('active');
     if (tab === 'settings') document.querySelectorAll('.nav-item')[2].classList.add('active');
     
+    // Data yuklamoq
     if (tab === 'products') loadProducts();
     if (tab === 'history') loadHistory();
   }
