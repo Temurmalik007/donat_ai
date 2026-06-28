@@ -7,6 +7,56 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ========== ANIMATSIYALAR ========== */
+  @keyframes slideInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 15px rgba(91, 77, 255, 0.4), inset 0 0 20px rgba(91, 77, 255, 0.1); }
+    50% { box-shadow: 0 0 40px rgba(91, 77, 255, 1), inset 0 0 40px rgba(91, 77, 255, 0.4), 0 0 80px rgba(91, 77, 255, 0.6); }
+  }
+  @keyframes scaleHover {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+  }
+  @keyframes buttonClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+  @keyframes balanceFlash {
+    0%, 100% { color: #fff; text-shadow: 0 0 0px rgba(46, 204, 113, 0); }
+    50% { color: #2ecc71; text-shadow: 0 0 15px rgba(46, 204, 113, 0.8); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.15); }
+  }
+  @keyframes spinner {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(91, 77, 255, 0.3);
+    border-top-color: #7a6bff;
+    border-radius: 50%;
+    animation: spinner 0.8s linear infinite;
+  }
+
   body {
     font-family: -apple-system, Segoe UI, Roboto, sans-serif;
     background: var(--tg-theme-bg-color, #0e1320);
@@ -14,10 +64,23 @@
     padding: 16px;
     padding-bottom: 90px;
   }
-  .profile { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .profile { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-bottom: 16px;
+    animation: fadeInUp 0.5s ease-out;
+  }
   .profile .avatar {
-    width: 44px; height: 44px; border-radius: 50%;
-    background: #444; display: flex; align-items: center; justify-content: center;
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5b4dff, #7a6bff);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
   }
   .profile .name { font-weight: 600; }
   .profile .username { color: #8a8f9a; font-size: 13px; }
@@ -27,10 +90,24 @@
     border-radius: 18px;
     padding: 18px;
     margin-bottom: 18px;
+    animation: slideInDown 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), glow 3s ease-in-out infinite;
   }
-  .balance-card .label { font-size: 13px; opacity: 0.85; }
-  .balance-card .amount { font-size: 28px; font-weight: 700; margin: 4px 0 14px; }
-  .balance-actions { display: flex; gap: 8px; }
+  .balance-card .label { 
+    font-size: 13px; 
+    opacity: 0.85;
+    animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  }
+  .balance-card .amount { 
+    font-size: 28px; 
+    font-weight: 700; 
+    margin: 4px 0 14px;
+    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  }
+  .balance-actions { 
+    display: flex; 
+    gap: 8px;
+    animation: fadeInUp 0.6s ease-out 0.3s backwards;
+  }
   .balance-actions button {
     flex: 1;
     background: rgba(255,255,255,0.18);
@@ -40,9 +117,23 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .balance-actions button:hover {
+    background: rgba(255,255,255,0.28);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+  .balance-actions button:active {
+    animation: buttonClick 0.2s ease;
   }
 
-  .tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+  .tabs { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 16px;
+  }
   .tabs button {
     flex: 1;
     padding: 10px;
@@ -51,8 +142,21 @@
     background: #1b2230;
     color: #8a8f9a;
     font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out backwards;
   }
-  .tabs button.active { background: #2a2f6b; color: #fff; }
+  .tabs button:nth-child(1) { animation-delay: 0.4s; }
+  .tabs button:nth-child(2) { animation-delay: 0.5s; }
+  .tabs button.active { 
+    background: #2a2f6b; 
+    color: #fff;
+    box-shadow: 0 0 20px rgba(91, 77, 255, 0.4);
+  }
+  .tabs button:hover:not(.active) {
+    background: #252a3d;
+    transform: translateY(-2px);
+  }
 
   .grid {
     display: grid;
@@ -65,24 +169,68 @@
     padding: 10px;
     text-align: center;
     font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: fadeInUp 0.5s ease-out backwards;
+    position: relative;
+    overflow: hidden;
   }
-  .product .icon { font-size: 28px; margin-bottom: 6px; }
-  .product .name { font-weight: 600; }
+  .product:nth-child(1) { animation-delay: 0.6s; }
+  .product:nth-child(2) { animation-delay: 0.65s; }
+  .product:nth-child(3) { animation-delay: 0.7s; }
+  .product:nth-child(4) { animation-delay: 0.75s; }
+  .product:nth-child(5) { animation-delay: 0.8s; }
+  .product:nth-child(6) { animation-delay: 0.85s; }
+
+  .product:hover {
+    transform: translateY(-8px) scale(1.06);
+    box-shadow: 0 15px 40px rgba(91, 77, 255, 0.5);
+    background: linear-gradient(135deg, #252a3d, #2a2f6b);
+  }
+  .product:active {
+    animation: buttonClick 0.2s ease;
+  }
+  .product .icon { 
+    font-size: 28px; 
+    margin-bottom: 6px;
+    animation: pulse 2s ease-in-out infinite;
+    display: inline-block;
+  }
+  .product .name { 
+    font-weight: 600;
+    color: #fff;
+  }
 
   .bottom-nav {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
+    bottom: 0; 
+    left: 0; 
+    right: 0;
     display: flex;
     background: #131a28;
     padding: 10px 0 16px;
+    animation: slideInUp 0.5s ease-out;
   }
   .bottom-nav .item {
     flex: 1;
     text-align: center;
     color: #8a8f9a;
     font-size: 11px;
+    transition: all 0.3s ease;
   }
-  .bottom-nav .item.active { color: #7a6bff; font-weight: 600; }
+  .bottom-nav .item.active { 
+    color: #7a6bff; 
+    font-weight: 600;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .bottom-nav .item:hover {
+    color: #fff;
+  }
+
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
@@ -140,12 +288,13 @@
 
   async function loadUser() {
     const tgUser = tg?.initDataUnsafe?.user;
-    const telegram_id = tgUser?.id || 123456; // brauzerda sinash uchun zaxira ID
+    const telegram_id = tgUser?.id || 123456;
     const first_name = tgUser?.first_name || "Mehmon";
     const username = tgUser?.username || "";
 
     document.getElementById('userName').textContent = first_name;
     document.getElementById('userUsername').textContent = username ? '@' + username : '';
+    document.getElementById('balance').textContent = '...';
 
     try {
       const res = await fetch(`${API_BASE}/user`, {
@@ -154,7 +303,13 @@
         body: JSON.stringify({ telegram_id, first_name, username }),
       });
       currentUser = await res.json();
-      document.getElementById('balance').textContent = currentUser.balance.toLocaleString();
+      const balanceEl = document.getElementById('balance');
+      balanceEl.textContent = currentUser.balance.toLocaleString();
+      // Balans o'zgarsa flash animatsiya
+      balanceEl.style.animation = 'none';
+      setTimeout(() => {
+        balanceEl.style.animation = 'balanceFlash 0.8s ease';
+      }, 10);
     } catch (err) {
       console.error("Backendga ulanib bo'lmadi:", err);
       document.getElementById('balance').textContent = "xato";
@@ -163,18 +318,21 @@
 
   async function loadProducts() {
     const grid = document.getElementById('productGrid');
+    grid.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner"></div> Yuklanmoqda...</div>';
+    
     try {
       const res = await fetch(`${API_BASE}/products`, { headers: apiHeaders });
       const products = await res.json();
 
       grid.innerHTML = "";
-      products.forEach(p => {
+      products.forEach((p, idx) => {
         const div = document.createElement('div');
         div.className = 'product';
         div.innerHTML = `
           <div class="icon">${p.icon}</div>
           <div class="name">${p.name}</div>
         `;
+        div.style.animationDelay = (idx * 0.05) + 's';
         div.onclick = () => buyProduct(p);
         grid.appendChild(div);
       });
