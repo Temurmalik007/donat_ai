@@ -321,6 +321,11 @@
   <p>Promokodlar keyin qo'shiladi</p>
 </div>
 
+<!-- HISTORY VIEW -->
+<div id="historyView" style="display:none;">
+  <div id="historyList" style="display:flex; flex-direction:column; gap:10px;"></div>
+</div>
+
 <!-- VARIANT MODAL -->
 <div id="variantModal" class="variant-modal">
   <div class="variant-header">
@@ -335,7 +340,7 @@
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <div class="nav-item active" onclick="switchTab('games')">🏠 Bosh sahifa</div>
-  <div class="nav-item" onclick="alert('Tarix keyin qo\'shiladi')">📜 Tarix</div>
+  <div class="nav-item" onclick="switchTab('history')">📜 Tarix</div>
   <div class="nav-item" onclick="alert('Sozlamalar keyin qo\'shiladi')">⚙️ Sozlamalar</div>
   <div class="nav-item" onclick="alert('Ijaraga keyin qo\'shiladi')">🎁 Ijaraga</div>
 </div>
@@ -411,6 +416,43 @@
       });
     } catch (err) {
       container.innerHTML = '<div class="loading" style="grid-column:1/-1;"><p style="color:#ff6b6b;">Backendga ulanib bo\'lmadi</p></div>';
+    }
+  }
+
+  async function loadHistory() {
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '<div class="loading"><div class="spinner"></div>Yuklanmoqda...</div>';
+    
+    try {
+      const res = await fetch(`${API_BASE}/admin/orders?key=buypin_admin_2026`, { headers: apiHeaders });
+      const orders = await res.json();
+      
+      // Faqat bu foydalanuvchining buyurtmalarini ko'rsat
+      const userOrders = orders.filter(o => o.telegram_id === currentUser.telegram_id).reverse();
+      
+      if (userOrders.length === 0) {
+        historyList.innerHTML = '<p style="text-align:center; color:#8a8f9a; padding:20px;">Tarix bo\'sh</p>';
+        return;
+      }
+      
+      historyList.innerHTML = '';
+      userOrders.forEach((order, idx) => {
+        const date = new Date(order.created_at).toLocaleString('uz-UZ');
+        const div = document.createElement('div');
+        div.style.cssText = 'background:linear-gradient(135deg, #1a1f3a 0%, #252a4a 100%); border-left:4px solid #5b4dff; border-radius:12px; padding:14px; animation:fadeInUp 0.5s ease-out backwards;';
+        div.style.animationDelay = (idx * 0.05) + 's';
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-weight:600; font-size:13px; color:#fff;">${order.product_name}</div>
+            <div style="color:#2ecc71; font-weight:600; font-size:12px;">-${order.price.toLocaleString()} so'm</div>
+          </div>
+          <div style="font-size:11px; color:#8a8f9a; margin-bottom:6px;">${date}</div>
+          <div style="background:#2a2f6b; color:#7a6bff; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:600; width:fit-content;">✓ ${order.status}</div>
+        `;
+        historyList.appendChild(div);
+      });
+    } catch (err) {
+      historyList.innerHTML = '<p style="color:#ff6b6b;">Tarixni olishda xato</p>';
     }
   }
 
@@ -504,6 +546,7 @@
   function switchTab(tab) {
     document.getElementById('gamesView').style.display = tab === 'games' ? 'grid' : 'none';
     document.getElementById('promoView').style.display = tab === 'promo' ? 'block' : 'none';
+    document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
     
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     if (tab === 'games') document.querySelectorAll('.tabs button')[0].classList.add('active');
@@ -511,8 +554,10 @@
 
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (tab === 'games') document.querySelectorAll('.nav-item')[0].classList.add('active');
+    if (tab === 'history') document.querySelectorAll('.nav-item')[1].classList.add('active');
 
     if (tab === 'games') loadProducts();
+    if (tab === 'history') loadHistory();
   }
 
   window.addEventListener('load', () => {
