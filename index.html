@@ -1,1 +1,214 @@
-/mnt/user-data/outputs/index_v2.html
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>BuyPin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--tg-theme-bg-color, #0e1320);
+    color: var(--tg-theme-text-color, #ffffff);
+    padding: 16px;
+    padding-bottom: 90px;
+  }
+  .profile { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .profile .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #444; display: flex; align-items: center; justify-content: center;
+  }
+  .profile .name { font-weight: 600; }
+  .profile .username { color: #8a8f9a; font-size: 13px; }
+
+  .balance-card {
+    background: linear-gradient(135deg, #5b4dff, #7a6bff);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .balance-card .label { font-size: 13px; opacity: 0.85; }
+  .balance-card .amount { font-size: 28px; font-weight: 700; margin: 4px 0 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .product {
+    background: #1b2230;
+    border-radius: 14px;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .product .icon { font-size: 28px; margin-bottom: 6px; }
+  .product .name { font-weight: 600; }
+
+  .variant-list { display: flex; flex-direction: column; gap: 8px; }
+  .variant-row {
+    background: #1b2230;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .variant-row .price { color: #7a6bff; font-weight: 700; }
+  .variant-row button {
+    background: #5b4dff; color: #fff; border: none;
+    padding: 8px 14px; border-radius: 10px; font-weight: 600;
+  }
+  .back-btn {
+    background: none; border: none; color: #8a8f9a;
+    margin-bottom: 12px; font-size: 14px;
+  }
+  #status { text-align: center; color: #8a8f9a; padding: 20px; }
+</style>
+</head>
+<body>
+
+  <div class="profile">
+    <div class="avatar">👤</div>
+    <div>
+      <div class="name" id="userName">Yuklanmoqda...</div>
+      <div class="username" id="userUsername"></div>
+    </div>
+  </div>
+
+  <div class="balance-card">
+    <div class="label">Balans</div>
+    <div class="amount"><span id="balance">0</span> so'm</div>
+  </div>
+
+  <div id="status"></div>
+  <div class="grid" id="productGrid"></div>
+  <div id="variantView" style="display:none;">
+    <button class="back-btn" onclick="showProducts()">⬅️ Orqaga</button>
+    <div class="variant-list" id="variantList"></div>
+  </div>
+
+<script>
+  // ⚠️ Backend manzilingizni shu yerga qo'ying (ngrok yoki o'z domeningiz)
+ const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
+
+  const tg = window.Telegram?.WebApp;
+  let initData = "";
+  let products = [];
+
+  function showStatus(text) {
+    document.getElementById('status').textContent = text;
+  }
+
+  async function init() {
+    if (!tg) {
+      showStatus("Bu ilova faqat Telegram ichida ishlaydi.");
+      return;
+    }
+    tg.expand();
+    tg.ready();
+
+    initData = tg.initData; // bu - backend tekshiradigan imzolangan ma'lumot
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+      document.getElementById('userName').textContent = user.first_name || 'Foydalanuvchi';
+      document.getElementById('userUsername').textContent = user.username ? '@' + user.username : '';
+    }
+
+    if (!initData) {
+      showStatus("Telegram orqali ochilmadi - test rejimida balans/buyurtma ishlamaydi.");
+    }
+
+    await loadUser();
+    await loadProducts();
+  }
+
+  async function loadUser() {
+    if (!initData) return;
+    try {
+      const res = await fetch(`${API_BASE}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData }),
+      });
+      const user = await res.json();
+      document.getElementById('balance').textContent = (user.balance || 0).toLocaleString();
+    } catch (err) {
+      showStatus("Backendga ulanib bo'lmadi. API_BASE manzilini tekshiring.");
+    }
+  }
+
+  async function loadProducts() {
+    try {
+      const res = await fetch(`${API_BASE}/products`);
+      products = await res.json();
+      renderProducts();
+    } catch (err) {
+      showStatus("Mahsulotlarni yuklab bo'lmadi.");
+    }
+  }
+
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = "";
+    products.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'product';
+      div.innerHTML = `<div class="icon">${p.icon}</div><div class="name">${p.name}</div>`;
+      div.onclick = () => showVariants(p);
+      grid.appendChild(div);
+    });
+  }
+
+  function showVariants(product) {
+    document.getElementById('productGrid').style.display = 'none';
+    document.getElementById('variantView').style.display = 'block';
+
+    const list = document.getElementById('variantList');
+    list.innerHTML = "";
+    product.variants.forEach(v => {
+      const row = document.createElement('div');
+      row.className = 'variant-row';
+      row.innerHTML = `
+        <div>${v.label}<br><span class="price">${v.price.toLocaleString()} so'm</span></div>
+        <button onclick="buy(${v.id})">Sotib olish</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function showProducts() {
+    document.getElementById('productGrid').style.display = 'grid';
+    document.getElementById('variantView').style.display = 'none';
+  }
+
+  async function buy(variantId) {
+    if (!initData) {
+      tg?.showAlert("Bu amal faqat Telegram ichida ishlaydi.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData, variant_id: variantId }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        tg.showAlert("✅ " + result.message);
+        await loadUser();
+      } else {
+        tg.showAlert("❌ " + result.message);
+      }
+    } catch (err) {
+      tg.showAlert("Xato yuz berdi, qaytadan urinib ko'ring.");
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
