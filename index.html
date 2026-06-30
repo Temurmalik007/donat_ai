@@ -93,7 +93,7 @@
 
 <script>
   // ⚠️ Backend manzilingizni shu yerga qo'ying (ngrok yoki o'z domeningiz)
- const API_BASE = "https://oxford-moving-curling.ngrok-free.dev";
+  const API_BASE = "https://your-ngrok-url.ngrok-free.dev";
 
   const tg = window.Telegram?.WebApp;
   let initData = "";
@@ -131,7 +131,10 @@
     try {
       const res = await fetch(`${API_BASE}/user`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify({ init_data: initData }),
       });
       const user = await res.json();
@@ -143,7 +146,9 @@
 
   async function loadProducts() {
     try {
-      const res = await fetch(`${API_BASE}/products`);
+      const res = await fetch(`${API_BASE}/products`, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
       products = await res.json();
       renderProducts();
     } catch (err) {
@@ -193,7 +198,10 @@
     try {
       const res = await fetch(`${API_BASE}/order`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
         body: JSON.stringify({ init_data: initData, variant_id: variantId }),
       });
       const result = await res.json();
